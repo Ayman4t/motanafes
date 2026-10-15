@@ -55,7 +55,7 @@ textarea.gone{visibility:hidden}
 @keyframes jolt{0%{transform:scale(1)}30%{transform:scale(.84) rotate(var(--r,5deg))}100%{transform:scale(1)}}
 .shake{animation:shake .34s linear}
 @keyframes shake{0%,100%{transform:translate(0,0)}15%{transform:translate(calc(var(--s)*-1px),calc(var(--s)*.7px))}35%{transform:translate(calc(var(--s)*1px),calc(var(--s)*-.9px))}55%{transform:translate(calc(var(--s)*-.7px),calc(var(--s)*-.5px))}75%{transform:translate(calc(var(--s)*.6px),calc(var(--s)*.8px))}}
-.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;touch-action:none;padding:4px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;touch-action:none;padding:4px;flex:1;min-height:0;overflow:hidden;align-content:start}
 .bubble{aspect-ratio:1;border-radius:50%;border:0;padding:0;cursor:pointer;background:radial-gradient(circle at 32% 28%,#fffa 0 6%,transparent 20%),radial-gradient(circle at 50% 55%,hsl(var(--h) 95% 64%),hsl(var(--h) 90% 38%) 72%,hsl(var(--h) 90% 22%));box-shadow:0 0 16px hsl(var(--h) 95% 55% / .45),inset 0 -5px 10px #0006;transition:transform .1s}
 .bubble:active{transform:scale(.9)}
 .bubble.popped{background:radial-gradient(circle at 50% 62%,#000c,transparent 72%),#0a0910;box-shadow:inset 0 3px 6px #000,inset 0 -1px 0 #ffffff12;transform:scale(.74);pointer-events:none;transition:transform .2s}
@@ -337,6 +337,7 @@ var tabs=[].slice.call(document.querySelectorAll('nav button'));
 tabs.forEach(function(b){
   b.addEventListener('click',function(){
     document.body.dataset.room=b.dataset.r;
+    if(b.dataset.r==='pop')requestAnimationFrame(function(){if(alive===total)fill()});
     tabs.forEach(function(t){t.setAttribute('aria-selected',t===b)});
     [].forEach.call(document.querySelectorAll('.room'),function(s){s.classList.toggle('on',s.id==='r-'+b.dataset.r)});
   });
@@ -442,10 +443,10 @@ items.addEventListener('click',function(e){
 });
 
 /* ---------- Room 3: Pop ---------- */
-var grid=$('#grid'), popN=0, alive=0, HUES=[330,190,35,270,95,8];
+var grid=$('#grid'), popN=0, alive=0, total=0, HUES=[330,190,35,270,95,8];
 function fill(){
-  grid.innerHTML=''; alive=48; $('#pmsg').textContent='';
-  for(var i=0;i<48;i++){
+  grid.innerHTML=''; var gw=grid.clientWidth-8, gh=grid.clientHeight-8, cell=(gw-50)/6, rows=gh>0?Math.floor((gh+10)/(cell+10)):8, N=Math.max(1,Math.min(10,rows))*6; total=N; alive=N; $('#pmsg').textContent='';
+  for(var i=0;i<N;i++){
     var b=document.createElement('button'), h=HUES[(rnd()*HUES.length)|0];
     b.className='bubble grow'; b.dataset.h=h; b.style.setProperty('--h',h); b.style.setProperty('--i',i);
     b.setAttribute('aria-label','فقاعة'); grid.appendChild(b);
@@ -466,6 +467,7 @@ grid.addEventListener('pointermove',function(e){if(dragging)pop(document.element
 ['pointerup','pointercancel','pointerleave'].forEach(function(n){grid.addEventListener(n,function(){dragging=false})});
 grid.addEventListener('click',function(e){if(e.detail===0)pop(e.target)});
 $('#refill').addEventListener('click',fill);
+window.addEventListener('resize',function(){if(document.body.dataset.room==='pop'&&alive===total)fill()});
 fill();
 })();
 </script>
